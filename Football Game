@@ -1,0 +1,322 @@
+import random
+
+# --- Game Setup ---
+
+def initialize_player():
+    """Sets up the initial player stats and career data."""
+    player = {
+        "name": "",
+        "age": 16,
+        "position": "", # e.g., ST, CM, CB
+        "overall": 55,
+        "potential": random.randint(75, 95),
+        "pace": 60,
+        "shooting": 50,
+        "passing": 50,
+        "defending": 50,
+        "physical": 60,
+        "team": "Youth Academy",
+        "loyalty": 0, # How much the player loves their current club
+        "cash": 0,
+        "seasons": 0,
+        "goals": 0,
+        "assists": 0,
+        "trophies": 0,
+    }
+    return player
+
+def get_position_choice():
+    """Prompts the user to choose a starting position."""
+    print("## Choose Your Position")
+    print("Where do you play your best football?")
+    print("1. **Striker (ST)**: Focus on **Shooting** and **Pace**.")
+    print("2. **Central Midfielder (CM)**: Focus on **Passing** and **Physical**.")
+    print("3. **Center Back (CB)**: Focus on **Defending** and **Physical**.")
+
+    while True:
+        choice = input("Enter 1, 2, or 3: ").strip()
+        if choice == '1':
+            return "ST"
+        elif choice == '2':
+            return "CM"
+        elif choice == '3':
+            return "CB"
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")
+
+def boost_initial_stats(player):
+    """Adjusts initial stats based on the chosen position."""
+    pos = player["position"]
+    if pos == "ST":
+        player["shooting"] += 5
+        player["pace"] += 5
+    elif pos == "CM":
+        player["passing"] += 5
+        player["physical"] += 5
+    elif pos == "CB":
+        player["defending"] += 5
+        player["physical"] += 5
+
+    # Recalculate overall based on the new stats
+    player["overall"] = sum([player["pace"], player["shooting"], player["passing"], player["defending"], player["physical"]]) // 5
+
+    return player
+
+# --- Game Logic ---
+
+def display_status(player):
+    """Shows the player's current status and statistics."""
+    print("\n" + "="*40)
+    print(f"## {player['name']} - The Star Player")
+    print("="*40)
+    print(f"**Age**: {player['age']} | **Position**: {player['position']}")
+    print(f"**Current Team**: {player['team']} | **Loyalty**: {player['loyalty']}")
+    print(f"**Overall Rating**: {player['overall']}")
+    print("-" * 20)
+    print("**Attributes**:")
+    print(f"Pace: {player['pace']} | Shooting: {player['shooting']} | Passing: {player['passing']}")
+    print(f"Defending: {player['defending']} | Physical: {player['physical']}")
+    print("-" * 20)
+    print("**Career Stats**:")
+    print(f"Seasons Played: {player['seasons']} | Goals: {player['goals']} | Assists: {player['assists']} | Trophies: {player['trophies']}")
+    print(f"Bank Balance: ${player['cash']:,}")
+    print("="*40 + "\n")
+
+def check_potential(player):
+    """Determines the player's potential level."""
+    if player["overall"] >= player["potential"]:
+        return False
+    return True
+
+def choose_season_focus(player):
+    """Allows the player to choose what to focus on for the season."""
+    print("\n## Season Focus")
+    print("What will you focus on in training this season? Choose one to boost.")
+    print("1. **Pace**: Get faster and more agile.")
+    print("2. **Shooting**: Improve your finishing and accuracy.")
+    print("3. **Passing**: Develop vision and precise ball distribution.")
+    print("4. **Defending**: Enhance tackling and tactical positioning.")
+    print("5. **Physical**: Boost stamina, strength, and aggression.")
+
+    while True:
+        choice = input("Enter a number (1-5): ").strip()
+        if choice == '1':
+            return "pace"
+        elif choice == '2':
+            return "shooting"
+        elif choice == '3':
+            return "passing"
+        elif choice == '4':
+            return "defending"
+        elif choice == '5':
+            return "physical"
+        else:
+            print("Invalid choice. Please enter a number between 1 and 5.")
+
+def simulate_season(player, focus):
+    """Simulates one season of play, advancing stats and age."""
+    player["seasons"] += 1
+    player["age"] += 1
+    print(f"\n--- Starting Season {player['seasons']} ({player['age']} years old) with {player['team']} ---")
+
+    # 1. Training and Development
+    if check_potential(player):
+        # A successful season and training focus leads to a stat increase
+        gain = random.randint(1, 3)
+        player[focus] += gain
+        print(f"Great training! Your **{focus.capitalize()}** increased by **+{gain}**.")
+
+        # Small random gains in other areas
+        other_attributes = ["pace", "shooting", "passing", "defending", "physical"]
+        other_attributes.remove(focus)
+        for attr in other_attributes:
+            if random.random() < 0.4: # 40% chance of a small gain
+                small_gain = 1
+                player[attr] += small_gain
+                print(f"You also gained +{small_gain} in **{attr.capitalize()}**.")
+
+    else:
+        # Player has hit their potential and development slows down
+        if random.random() < 0.6: # 60% chance of a small, maintenance-level gain
+            attr = random.choice(["pace", "shooting", "passing", "defending", "physical"])
+            player[attr] += 1
+            print(f"You are reaching your peak. You managed a +1 gain in **{attr.capitalize()}**.")
+        else:
+            # Decline starts after peak
+            if player['age'] > 30:
+                attr = random.choice(["pace", "shooting", "passing", "defending", "physical"])
+                player[attr] -= 1
+                player[attr] = max(1, player[attr])
+                print(f"At {player['age']}, age is catching up. -1 in **{attr.capitalize()}**.")
+
+
+    # Recalculate Overall Rating
+    old_overall = player["overall"]
+    player["overall"] = sum([player["pace"], player["shooting"], player["passing"], player["defending"], player["physical"]]) // 5
+    overall_change = player["overall"] - old_overall
+    print(f"\n**Overall Rating Change**: {old_overall} -> {player['overall']} ({'+' if overall_change > 0 else ''}{overall_change})")
+
+
+    # 2. Match Performance & Team Results
+    match_impact = player["overall"] // 10
+    season_goals = random.randint(5, 15) + match_impact
+    season_assists = random.randint(3, 10) + (match_impact // 2)
+
+    # Adjust based on position
+    if player["position"] == "ST":
+        season_goals += 5
+    elif player["position"] == "CB":
+        season_assists -= 3
+        season_goals = max(0, season_goals - 5)
+
+    player["goals"] += season_goals
+    player["assists"] += season_assists
+
+    print(f"**Season Performance**: {season_goals} goals, {season_assists} assists.")
+
+    # 3. Team Success and Financials
+    # Higher overall means a better chance at winning trophies
+    if player["overall"] >= 80 and random.random() < 0.3:
+        player["trophies"] += 1
+        print("!!! **CHAMPIONS** !!! Your team lifted a major trophy this season!")
+
+    salary = player["overall"] * 50000 + (player["loyalty"] * 10000)
+    player["cash"] += salary
+    print(f"You earned a salary of **${salary:,}** this season.")
+
+    # 4. End of Season Choice: Transfer or Stay
+    if player["overall"] > 70 and player["age"] >= 18:
+        transfer_choice(player)
+
+def transfer_choice(player):
+    """Presents the player with transfer options if available."""
+    print("\n--- End of Season Transfer Window ---")
+    
+    # Simple logic for transfer offers based on overall rating
+    if 70 <= player["overall"] < 80:
+        offer_team = "A Mid-Table Club"
+        offer_team_tier = "Tier 2"
+        offer_value = player["overall"] * 100000
+    elif 80 <= player["overall"] < 90:
+        offer_team = "A Champions League Challenger"
+        offer_team_tier = "Tier 1"
+        offer_value = player["overall"] * 500000
+    elif player["overall"] >= 90:
+        offer_team = "A World Superclub"
+        offer_team_tier = "Tier 0 (Elite)"
+        offer_value = player["overall"] * 1000000
+    else:
+        # No big offers for lower-rated players
+        print("No attractive offers came in this window. The club is happy to keep you.")
+        player["loyalty"] += 1
+        return
+
+    # Check for loyalty impact
+    loyalty_bonus = player["loyalty"] * 50000
+    transfer_wage = offer_value // 50 + loyalty_bonus
+    current_wage = player["overall"] * 50000
+
+    print(f"A major offer has come in from **{offer_team}** ({offer_team_tier})!")
+    print(f"**Transfer Fee**: ${offer_value:,}")
+    print(f"**New Contract Wage**: ${transfer_wage:,} per season (Current Wage: ${current_wage:,})")
+
+    if player["loyalty"] > 5:
+        print(f"***Your high loyalty to {player['team']} is being tested.***")
+
+    print("\nWhat do you do?")
+    print("1. **Accept the Transfer**: Join the new club for a huge raise.")
+    print(f"2. **Reject the Offer**: Stay loyal to {player['team']} and sign a new deal.")
+
+    while True:
+        choice = input("Enter 1 or 2: ").strip()
+        if choice == '1':
+            player["team"] = offer_team
+            player["cash"] += offer_value # Sign-on bonus/transfer fee is complex, simplify by giving a bonus
+            player["loyalty"] = 0 # Loyalty resets at the new club
+            print(f"\n***{player['name']} has signed for {player['team']}! A new chapter begins.***")
+            break
+        elif choice == '2':
+            player["loyalty"] += 2
+            # Reward for staying with a small loyalty bonus
+            player["cash"] += 200000
+            print(f"\n***You turned down the move! {player['team']} loves your loyalty. +2 Loyalty, +$200,000 bonus.***")
+            break
+        else:
+            print("Invalid choice. Enter 1 or 2.")
+
+def retire_and_summary(player):
+    """Ends the game and provides a career summary."""
+    print("\n" + "#" * 50)
+    print("## CAREER RETIREMENT")
+    print("#" * 50)
+
+    # Determine career status
+    status = ""
+    if player["overall"] >= 95 and player["trophies"] >= 5:
+        status = "LEGENDARY: Recognized as one of the greatest to ever play the game."
+    elif player["overall"] >= 90 and player["trophies"] >= 2:
+        status = "WORLD CLASS: An elite player who achieved greatness in the modern era."
+    elif player["overall"] >= 85:
+        status = "TOP PROFESSIONAL: A consistent, highly-rated player in the biggest leagues."
+    else:
+        status = "SOLID CAREER: A respected professional who made a good living in the game."
+
+    print(f"**Name**: {player['name']} | **Final Age**: {player['age']}")
+    print(f"**Final Overall Rating**: {player['overall']}")
+    print(f"**Career Status**: {status}")
+    print("-" * 30)
+    print("**Career Totals**:")
+    print(f"Seasons: {player['seasons']} | Teams Played For: (Not tracked, but you moved {player['loyalty']} times less than you could have!)")
+    print(f"Total Goals: {player['goals']} | Total Assists: {player['assists']}")
+    print(f"Major Trophies Won: {player['trophies']}")
+    print(f"Total Career Earnings: ${player['cash']:,}")
+    print("-" * 30)
+
+    if player["cash"] > 10000000:
+        print("You are set for life and have a massive fortune for your retirement.")
+    else:
+        print("You had a good career, but you'll need to be smart with your savings.")
+
+    print("#" * 50)
+
+# --- Main Game Loop ---
+
+def start_game():
+    """The main function to run the career game."""
+    print("="*50)
+    print("WELCOME TO THE TEXT-BASED FOOTBALL CAREER GAME")
+    print("="*50)
+
+    player = initialize_player()
+    player["name"] = input("Enter your player's name: ").strip() or "Unnamed Star"
+    player["position"] = get_position_choice()
+    player = boost_initial_stats(player)
+
+    print(f"\nWelcome, **{player['name']}**! You are a {player['age']}-year-old {player['position']} at the **Youth Academy**.")
+
+    while player["age"] <= 35:
+        display_status(player)
+
+        # Main menu choice
+        print("## Season Menu")
+        print("1. **Play Next Season**: Advance one year, train, and play matches.")
+        print("2. **Retire**: End your career and see your legacy.")
+
+        while True:
+            choice = input("Enter 1 or 2: ").strip()
+            if choice == '1':
+                focus = choose_season_focus(player)
+                simulate_season(player, focus)
+                break
+            elif choice == '2':
+                retire_and_summary(player)
+                return
+            else:
+                print("Invalid choice. Please enter 1 or 2.")
+
+    # Forced retirement at age 36
+    print("\n**Time for a standing ovation!** At 36, your playing days are officially over.")
+    retire_and_summary(player)
+
+if __name__ == "__main__":
+    start_game()
